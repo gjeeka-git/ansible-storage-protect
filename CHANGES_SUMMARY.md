@@ -7,6 +7,89 @@ Successfully implemented support for four additional platforms in the SP Server 
 3. **Solaris x86** (Oracle Solaris on x86-64)
 4. **SLES15 x86** (SUSE Linux Enterprise Server 15)
 
+
+## Playbook Updates (2026-06-02)
+
+### 3. playbooks/sp_server/playbook.yml
+
+#### Change 1: Added PLAY 3 for PPC64LE SP Server Orchestration (Lines 171-254)
+**Purpose**: Enable SP Server orchestration on IBM Power (ppc64le) architecture
+
+**Added Play**:
+```yaml
+- name: SP Server orchestration - PPC64LE
+  hosts: sp_server_ppc64le
+  gather_facts: true
+  become: true
+```
+
+**Key Features**:
+- Targets `sp_server_ppc64le` host group
+- Follows same Linux installation flow as PLAY 2
+- Uses systemd for service management
+- Supports install, upgrade, and uninstall operations
+- Copies Python modules and utilities to target systems
+- Converts vars to JSON for Python script consumption
+
+### 4. playbooks/sp_server/playbook_configure.yml
+
+#### Change 1: Updated Host Groups (Line 3)
+**Purpose**: Include PPC64LE hosts in configuration playbook
+
+**Before**:
+```yaml
+hosts: sp_server_linux, sp_server_aix, sp_server_windows
+```
+
+**After**:
+```yaml
+hosts: sp_server_linux, sp_server_aix, sp_server_windows, sp_server_ppc64le
+```
+
+### 5. playbooks/sp_server/README.md (NEW)
+
+**Purpose**: Comprehensive documentation for SP Server playbooks
+
+**Contents**:
+- Overview of all three plays (Windows, Linux/AIX, PPC64LE)
+- Platform-specific details and requirements
+- Usage examples and inventory configuration
+- Variable reference and troubleshooting guide
+
+### 6. plugins/modules/orchestrations/ORCH_ba_serverinstall.py
+
+#### Change 1: Added Artifact Patterns for Additional Platforms (Lines 13-38)
+**Purpose**: Enable BA Server orchestration to recognize installation binaries for new platforms
+
+**Added Patterns**:
+```python
+"linuxppc64le": r"([0-9]+(?:\\.[0-9]+){1,3})-[A-Za-z0-9_-]+-Linuxppc64le\\.bin$",
+"linuxs390x": r"([0-9]+(?:\\.[0-9]+){1,3})-[A-Za-z0-9_-]+-Linuxs390x\\.bin$",
+"solarisx86": r"([0-9]+(?:\\.[0-9]+){1,3})-[A-Za-z0-9_-]+-SolarisX86\\.bin$",
+"sles15": r"([0-9]+(?:\\.[0-9]+){1,3})-[A-Za-z0-9_-]+-SLES15X64\\.bin$",
+```
+
+### 7. roles/sp_server_install/defaults/main.yml
+
+#### Change 1: Updated Compatible Architectures (Lines 59-62)
+**Purpose**: Allow SP Server installation on additional architectures
+
+**Before**:
+```yaml
+sp_server_compatible_architectures:
+  - x86_64
+```
+
+**After**:
+```yaml
+sp_server_compatible_architectures:
+  - x86_64
+  - ppc64le
+  - s390x
+```
+
+- PPC64LE architecture details and binary naming conventions
+
 ## Files Modified
 
 ### 1. plugins/modules/sp_server.py
